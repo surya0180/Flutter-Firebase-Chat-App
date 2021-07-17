@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_complete_guide/widgets/pickers/user_image_picker.dart';
 
 class AuthForm extends StatefulWidget {
   AuthForm(this.submitFn, this.isLoading);
@@ -7,6 +9,7 @@ class AuthForm extends StatefulWidget {
     String email,
     String password,
     String userName,
+    File userImageFIle,
     bool isLogin,
     BuildContext ctx,
   ) submitFn;
@@ -23,26 +26,41 @@ class _AuthFormState extends State<AuthForm> {
   var _userEmail = '';
   var _userName = '';
   var _userPassword = '';
+  var _userImageFile;
+
+  void _pickedImage(File image) {
+    _userImageFile = image;
+  }
 
   void _trySubmit() {
     final isValid = _formKey.currentState.validate();
     FocusScope.of(context).unfocus();
 
-    if (isValid) {
+    if (_userImageFile == null && !_isLogin) {
+      Scaffold.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please pick an image'),
+          backgroundColor: Theme.of(context).errorColor,
+        ),
+      );
+      return;
+    }
+
+    if (isValid && _userImageFile != null) {
       _formKey.currentState.save();
-     widget.submitFn(
-       _userEmail,
-       _userPassword,
-       _userName,
-       _isLogin,
-       context,
-     );
+      widget.submitFn(
+        _userEmail.trim(),
+        _userPassword.trim(),
+        _userName.trim(),
+        _userImageFile,
+        _isLogin,
+        context,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Center(
       child: Card(
         margin: EdgeInsets.all(20),
@@ -54,6 +72,7 @@ class _AuthFormState extends State<AuthForm> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
+                  if (!_isLogin) UserImagePicker(_pickedImage),
                   TextFormField(
                     key: ValueKey('email'),
                     validator: (value) {
@@ -99,8 +118,7 @@ class _AuthFormState extends State<AuthForm> {
                     },
                   ),
                   SizedBox(height: 12),
-                  if (widget.isLoading)
-                    CircularProgressIndicator(),
+                  if (widget.isLoading) CircularProgressIndicator(),
                   if (!widget.isLoading)
                     RaisedButton(
                       child: Text(_isLogin ? 'Login' : 'Signup'),
