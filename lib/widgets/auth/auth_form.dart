@@ -8,6 +8,7 @@ class AuthForm extends StatefulWidget {
     String password,
     String userName,
     bool isLogin,
+    BuildContext ctx,
   ) submitFn;
 
   @override
@@ -31,7 +32,8 @@ class _AuthFormState extends State<AuthForm> {
        _userEmail,
        _userPassword,
        _userName,
-       _isLogin
+       _isLogin,
+       context,
      );
     }
   }
