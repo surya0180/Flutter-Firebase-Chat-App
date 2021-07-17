@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_complete_guide/widgets/auth/auth_form.dart';
@@ -10,6 +11,7 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   final _auth = FirebaseAuth.instance;
+  var _isLoading = false;
 
   void _submitAuthForm(
     String email,
@@ -21,6 +23,9 @@ class _AuthScreenState extends State<AuthScreen> {
     UserCredential authResult;
 
     try {
+      setState(() {
+        _isLoading = true;
+      });
       if (isLogin) {
         authResult = await _auth.signInWithEmailAndPassword(
           email: email,
@@ -31,7 +36,12 @@ class _AuthScreenState extends State<AuthScreen> {
           email: email,
           password: password,
         );
+        await FirebaseFirestore.instance.collection('users').doc(authResult.user.uid).set({
+          'username': username,
+          'email': email,
+        });
       }
+
     } catch (error) {
       var message = 'An error occured please check your creds again';
       if (error.message != null) {
@@ -43,6 +53,9 @@ class _AuthScreenState extends State<AuthScreen> {
           backgroundColor: Theme.of(context).errorColor,
         ),
       );
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -52,6 +65,7 @@ class _AuthScreenState extends State<AuthScreen> {
       backgroundColor: Theme.of(context).primaryColor,
       body: AuthForm(
         _submitAuthForm,
+        _isLoading,
       ),
     );
   }
